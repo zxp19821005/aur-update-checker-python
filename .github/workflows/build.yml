@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build and Package
 
 on:
   workflow_dispatch:
@@ -19,17 +19,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install nuitka
-          pip show nuitka
 
-      - name: Run build script
+      - name: Build wheel package
         run: |
-          # 使用 package.py 进行打包
-          if ! python package.py; then
-            echo "Nuitka 打包失败，尝试使用 pyinstaller 作为备用方案"
-            pip install pyinstaller
-            pyinstaller --onefile --name aur-update-checker-python main.py
-          fi
+          python setup.py bdist_wheel
+          echo "Wheel package created successfully"
 
       - name: Check for dependency updates
         run: |
@@ -45,31 +39,11 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "版本信息: ${VERSION}"
 
-      - name: Package dist files
-        run: |
-          cd dist
-          tar -czvf "../aur-update-checker-python-${VERSION}.tar.gz" .
-          cd ..
-          echo "打包完成：aur-update-checker-python-${VERSION}.tar.gz"
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload wheel package
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ env.VERSION }}
-          release_name: Release ${{ env.VERSION }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        id: upload_release_asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./aur-update-checker-python-${{ env.VERSION }}.tar.gz
-          asset_name: aur-update-checker-python-${{ env.VERSION }}.tar.gz
-          asset_content_type: application/gzip
+          name: aur-update-checker-python-${{ env.VERSION }}
+          path: dist/*.whl
+          if-no-files-found: error
+          compression-level: 6
+          overwrite: false
