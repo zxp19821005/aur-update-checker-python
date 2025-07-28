@@ -21,7 +21,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install nuitka
-          python -c "import nuitka; print(f'Nuitka version: {nuitka.__version__}')"
+          pip show nuitka
 
       - name: Run build script
         run: |
