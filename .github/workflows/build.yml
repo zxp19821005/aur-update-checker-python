@@ -1,4 +1,4 @@
-name: Build and Package
+name: Build and Release
 
 on:
   workflow_dispatch:
@@ -48,16 +48,28 @@ jobs:
       - name: Package dist files
         run: |
           cd dist
-          rm -rf main.build main.dist
           tar -czvf "../aur-update-checker-python-${VERSION}.tar.gz" .
           cd ..
           echo "打包完成：aur-update-checker-python-${VERSION}.tar.gz"
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: aur-update-checker-python-${{ env.VERSION }}
-          path: aur-update-checker-python-${{ env.VERSION }}.tar.gz
-          if-no-files-found: warn
-          compression-level: 6
-          overwrite: false
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./aur-update-checker-python-${{ env.VERSION }}.tar.gz
+          asset_name: aur-update-checker-python-${{ env.VERSION }}.tar.gz
+          asset_content_type: application/gzip
