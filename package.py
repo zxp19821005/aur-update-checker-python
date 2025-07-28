@@ -48,9 +48,9 @@ def find_icon_file():
 def main():
     # 检查 Nuitka 是否已安装
     try:
-        import nuitka
-        print(f"Nuitka 版本: {nuitka.__version__}")
-    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "show", "nuitka"])
+        print("Nuitka 已安装")
+    except subprocess.CalledProcessError:
         print("错误: Nuitka 未安装，尝试安装...")
         try:
             subprocess.check_call([sys.executable, "-m", "pip", "install", "nuitka"])
