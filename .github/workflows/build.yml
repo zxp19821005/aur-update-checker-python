@@ -48,7 +48,7 @@ jobs:
           echo "打包完成：aur-update-checker-python-${VERSION}.tar.gz"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: aur-update-checker-python-${VERSION}
           path: aur-update-checker-python-${VERSION}.tar.gz
