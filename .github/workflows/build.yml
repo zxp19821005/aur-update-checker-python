@@ -55,5 +55,8 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: aur-update-checker-python-${VERSION}
-          path: aur-update-checker-python-${VERSION}.tar.gz
+          name: aur-update-checker-python-${{ env.VERSION }}
+          path: aur-update-checker-python-${{ env.VERSION }}.tar.gz
+          if-no-files-found: warn
+          compression-level: 6
+          overwrite: false
