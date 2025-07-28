@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=AUR Update Checker
+Comment=Check for updates in AUR packages
+Exec=aur-update-checker-python
+Icon=aur-update-checker-python
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupNotify=true
+Keywords=aur;update;package;arch linux;
