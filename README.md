@@ -73,7 +73,7 @@ paru -S aur-update-checker
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/aur-update-checker-python.git
+git clone https://github.com/zxp19821005/aur-update-checker-python.git
 
 # 进入目录
 cd aur-update-checker-python
@@ -89,7 +89,7 @@ python main.py
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/aur-update-checker-python.git
+git clone https://github.com/zxp19821005/aur-update-checker-python.git
 
 # 进入目录
 cd aur-update-checker-python
@@ -99,6 +99,27 @@ python package.py
 
 # 或使用 deploy.py 进行完整部署
 python deploy.py
+```
+
+### 运行环境要求
+
+本应用依赖以下系统包：
+
+```bash
+# 安装必要的系统依赖
+sudo pacman -S python pyside6 python-beautifulsoup4 python-requests python-lxml python-playwright
+```
+
+**注意**：打包后的可执行文件默认使用系统安装的 PySide6 和 playwright 库，而不是将它们打包到可执行文件中。这样可以减小可执行文件的大小，但要求系统中必须安装这些依赖。
+
+如果在运行时遇到 `ModuleNotFoundError: No module named 'PySide6'` 错误，请确保已安装 PySide6：
+
+```bash
+# 检查 PySide6 是否已安装
+pacman -Q pyside6
+
+# 如果未安装，则安装 PySide6
+sudo pacman -S pyside6
 ```
 
 ## 使用方法
@@ -157,6 +178,35 @@ python main.py [选项]
 详细配置选项请参考项目中的 `config.template.json` 文件。
 
 ## 高级功能
+
+### 虚拟环境中使用
+
+如果您在 Python 虚拟环境中使用打包后的可执行文件，需要确保虚拟环境中也安装了所需的依赖：
+
+```bash
+# 创建并激活虚拟环境
+python -m venv venv
+source venv/bin/activate
+
+# 安装依赖
+pip install PySide6 requests beautifulsoup4 lxml playwright
+
+# 运行程序
+./dist/aur-update-checker-python
+```
+
+或者，您可以修改 package.py 文件，取消 `--nofollow-import-to=PySide6` 和 `--nofollow-import-to=playwright` 选项，将这些依赖打包到可执行文件中：
+
+```python
+# 将这些行注释掉
+# "--nofollow-import-to=PySide6",  # 排除 PySide6 依赖
+# "--nofollow-import-to=playwright",  # 排除 playwright 依赖
+
+# 添加这些行
+"--plugin-enable=pyside6",
+"--include-qt-plugins=platforms",
+"--include-package-data=playwright",
+```
 
 ### 定时检查
 
@@ -248,6 +298,41 @@ aur-update-checker-python/
 - 为新功能编写单元测试
 - 保持文档和注释的更新
 
+## 故障排除
+
+### 常见问题
+
+1. **ModuleNotFoundError: No module named 'PySide6'**
+   - 原因：打包的可执行文件依赖系统安装的 PySide6
+   - 解决方法：`sudo pacman -S pyside6` 或在虚拟环境中 `pip install PySide6`
+
+2. **ModuleNotFoundError: No module named 'playwright'**
+   - 原因：打包的可执行文件依赖系统安装的 playwright
+   - 解决方法：`sudo pacman -S python-playwright` 或在虚拟环境中 `pip install playwright`
+
+3. **缺少共享库错误（如 libicudata.so.66）**
+   - 原因：playwright 依赖的系统库缺失
+   - 解决方法：修改 package.py，取消注释 `--include-package-data=playwright` 选项，重新打包
+
+4. **无法找到 Qt 平台插件**
+   - 原因：Qt 平台插件未包含在可执行文件中
+   - 解决方法：修改 package.py，添加 `--plugin-enable=pyside6` 和 `--include-qt-plugins=platforms` 选项，重新打包
+
+### 调试技巧
+
+如果遇到其他问题，可以尝试以下调试方法：
+
+```bash
+# 启用调试日志
+./dist/aur-update-checker-python --log-level debug
+
+# 使用 strace 跟踪系统调用
+strace -f ./dist/aur-update-checker-python
+
+# 检查动态链接库依赖
+ldd ./dist/aur-update-checker-python
+```
+
 ## 许可证
 
 本项目采用 MIT 许可证 - 详情请参见 [LICENSE](LICENSE) 文件
@@ -263,4 +348,4 @@ aur-update-checker-python/
 
 ---
 
-**AUR Update Checker** © 2025 zxp19821005. 保留所有权利。
+**AUR Update Checker** © 2023-2024 Z.ai. 保留所有权利。

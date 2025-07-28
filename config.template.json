@@ -1,0 +1,108 @@
+{
+  "# 配置文件说明": "这是AUR Update Checker的配置文件模板，可以根据需要修改以下配置项",
+  "# 配置文件版本": "1.0.0",
+  "# 使用说明": "可以通过以下方式指定配置文件路径：1. 环境变量AUR_UPDATE_CHECKER_CONFIG 2. 命令行参数--config或-c",
+  "# 示例": "AUR_UPDATE_CHECKER_CONFIG=/path/to/config.json ./main.py 或 ./main.py --config /path/to/config.json",
+
+  "database": {
+    "path": "~/.config/aur-update-checker-python/packages.db",
+    "backup_count": 3
+  },
+
+  "logging": {
+    "level": "info",
+    "file": "~/.config/aur-update-checker-python/aur-checker.log",
+    "console": true,
+    "max_size": 10485760,
+    "max_files": 5
+  },
+
+  "aur": {
+    "base_url": "https://aur.archlinux.org",
+    "timeout": 30
+  },
+
+  "upstream": {
+    "timeout": 30,
+    "user_agent": "AUR-Update-Checker/1.0",
+    "cache_time": 86400,
+    "retry": {
+      "count": 3,
+      "delay": 1
+    }
+  },
+
+  "github": {
+    "api_url": "https://api.github.com",
+    "token": "",
+    "per_page": 100
+  },
+
+  "gitee": {
+    "api_url": "https://gitee.com/api/v5",
+    "token": "",
+    "per_page": 100
+  },
+
+  "gitlab": {
+    "api_url": "https://gitlab.com/api/v4",
+    "token": "",
+    "per_page": 100
+  },
+
+  "npm": {
+    "registry": "https://registry.npmjs.org"
+  },
+
+  "pypi": {
+    "api_url": "https://pypi.org/pypi"
+  },
+
+  "system": {
+    "temp_dir": "/tmp/aur-update-checker",
+    "concurrent_checks": 5,
+    "package_manager": "auto"
+  },
+
+  "tools": {
+    "curl_path": ""
+  },
+
+  "scheduler": {
+    "enabled": true,
+    "aur_check_interval": 24,
+    "upstream_check_interval": 48,
+    "check_on_startup": false,
+    "notification_enabled": true
+  },
+
+  "ui": {
+    "theme": "system",
+    "font_size": 12,
+    "show_tray_icon": true,
+    "minimize_to_tray": true,
+    "start_minimized": false,
+    "show_name": true,
+    "show_aur_version": true,
+    "show_upstream_version": true,
+    "show_status": true,
+    "show_aur_check_time": true,
+    "show_upstream_check_time": true,
+    "show_checker_type": true,
+    "show_upstream_url": true,
+    "show_notes": true,
+    "close_action": "minimize",
+    "show_minimize_notification": true,
+    "text_alignment": {
+      "name": "center",
+      "aur_version": "center",
+      "upstream_version": "center",
+      "status": "center",
+      "aur_check_time": "center",
+      "upstream_check_time": "center",
+      "checker_type": "center",
+      "upstream_url": "center",
+      "notes": "center"
+    }
+  }
+}
