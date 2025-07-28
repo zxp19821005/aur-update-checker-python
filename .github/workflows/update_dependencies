@@ -1,0 +1,17 @@
+name: Update Dependencies
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check for dependency updates
+        run: |
+          chmod +x ./update_dependencies.sh
+          ./update_dependencies.sh
