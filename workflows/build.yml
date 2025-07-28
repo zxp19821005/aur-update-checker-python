@@ -1,0 +1,54 @@
+name: Build and Package
+
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run build script
+        run: |
+          # 使用 package.py 进行打包
+          python package.py
+
+      - name: Check for dependency updates
+        run: |
+          chmod +x ./update_dependencies.sh
+          ./update_dependencies.sh
+
+      - name: Get version info
+        id: version
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          DATE=$(date +%Y%m%d)
+          VERSION="${DATE}-${COMMIT_HASH}"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "版本信息: ${VERSION}"
+
+      - name: Package dist files
+        run: |
+          cd dist
+          tar -czvf "../aur-update-checker-python-${VERSION}.tar.gz" .
+          cd ..
+          echo "打包完成：aur-update-checker-python-${VERSION}.tar.gz"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: aur-update-checker-python-${VERSION}
+          path: aur-update-checker-python-${VERSION}.tar.gz
