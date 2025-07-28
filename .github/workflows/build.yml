@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -20,11 +20,17 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install nuitka
+          python -c "import nuitka; print(f'Nuitka version: {nuitka.__version__}')"
 
       - name: Run build script
         run: |
           # 使用 package.py 进行打包
-          python package.py
+          if ! python package.py; then
+            echo "Nuitka 打包失败，尝试使用 pyinstaller 作为备用方案"
+            pip install pyinstaller
+            pyinstaller --onefile --name aur-update-checker-python main.py
+          fi
 
       - name: Check for dependency updates
         run: |
