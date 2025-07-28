@@ -46,6 +46,18 @@ def find_icon_file():
     return None
 
 def main():
+    # 检查 Nuitka 是否已安装
+    try:
+        import nuitka
+        print(f"Nuitka 版本: {nuitka.__version__}")
+    except ImportError:
+        print("错误: Nuitka 未安装，尝试安装...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "nuitka"])
+            print("Nuitka 安装成功")
+        except Exception as e:
+            print(f"Nuitka 安装失败: {e}")
+            return 1
     # 解析命令行参数
     parser = argparse.ArgumentParser(description="AUR更新检查器打包脚本")
     parser.add_argument("--main", help="主Python文件路径")
@@ -196,7 +208,19 @@ def main():
     print(f"执行命令: {' '.join(cmd)}")
 
     try:
-        subprocess.run(cmd, env=env, check=True)
+        # 显示完整命令
+        print("完整打包命令:")
+        print(" ".join(cmd))
+        
+        # 执行打包命令
+        result = subprocess.run(cmd, env=env, check=True, capture_output=True, text=True)
+        
+        # 显示命令输出
+        print("命令输出:")
+        print(result.stdout)
+        if result.stderr:
+            print("命令错误:")
+            print(result.stderr)
 
         # 检查是否生成了main.dist目录
         main_dist_dir = Path("dist/main.dist")
