@@ -10,7 +10,7 @@ if os.path.exists("requirements.txt"):
 setup(
     name="aur-update-checker-python",
     version="1.0.0",
-    packages=find_packages(where="src"),
+    packages=find_packages(where="src", include=['*', 'modules.*']),
     package_dir={"": "src"},
     entry_points={
         "console_scripts": [
