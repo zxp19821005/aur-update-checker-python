@@ -23,7 +23,7 @@ sys.path.insert(0, base_dir)
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon
-from aur_update_checker_python.modules.service_provider import ServiceProvider
+from src.modules.service_provider import ServiceProvider
 from src.modules.dependency_container import container
 from src.modules.http_client import HttpClient
 from src.ui.main_window import MainWindow
