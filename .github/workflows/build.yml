@@ -10,6 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # 显式声明权限
+    permissions:
+      contents: write  # 允许创建 Release
+
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +44,9 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "版本信息: ${VERSION}"
 
+      - name: List files in dist/
+        run: ls -la dist/
+
       - name: Upload wheel package
         uses: actions/upload-artifact@v4
         with:
@@ -50,10 +57,13 @@ jobs:
           overwrite: false
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2  # 升级到 v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 显式传递 Token
         with:
-          files: dist/*.whl
+          files: |
+            dist/*.whl
+            LICENSE
           tag_name: ${{ github.ref }}
           name: Version ${{ env.VERSION }} - Stable Release
           body: |
@@ -65,3 +75,4 @@ jobs:
             - Built from tag: ${{ github.ref }}
           draft: false
           prerelease: false
+          overwrite: true  # 允许覆盖已存在的 Release
