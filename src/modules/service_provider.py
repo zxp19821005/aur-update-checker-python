@@ -33,16 +33,16 @@ class ServiceProvider:
         config_path = kwargs.get("config_path")
         config_args = {"config_path": config_path} if config_path else {}
 
-        def config_factory(container):
-            logger = container.get("logger")
+        async def config_factory(container):
+            logger = await container.get("logger")
             return ConfigModule(logger, **config_args)
 
         container.register_factory("config", config_factory)
 
         # 注册数据库服务
-        def db_factory(container):
-            logger = container.get("logger")
-            config = container.get("config")
+        async def db_factory(container):
+            logger = await container.get("logger")
+            config = await container.get("config")
             return DatabaseModule(logger, config)
 
         container.register_factory("db", db_factory)
@@ -87,9 +87,9 @@ class ServiceProvider:
         container.register_factory("scheduler", scheduler_factory)
 
         # 注册HTTP客户端
-        def http_client_factory(container):
-            logger = container.get("logger")
-            config = container.get("config")
+        async def http_client_factory(container):
+            logger = await container.get("logger")
+            config = await container.get("config")
 
             # 创建HTTP客户端实例
             http_client = HttpClient.get_instance(logger)
@@ -101,7 +101,7 @@ class ServiceProvider:
             http_conn_limit_per_host = config.get("upstream.conn_limit_per_host", 10)
 
             # 配置HTTP客户端
-            http_client.configure(
+            await http_client.configure(
                 timeout=http_timeout, 
                 headers={"User-Agent": http_user_agent},
                 conn_limit=http_conn_limit,
@@ -113,7 +113,7 @@ class ServiceProvider:
         container.register_factory("http_client", http_client_factory)
 
     @staticmethod
-    def bootstrap(**kwargs):
+    async def bootstrap(**kwargs):
         """初始化所有服务
 
         Args:

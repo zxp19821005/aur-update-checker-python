@@ -78,7 +78,7 @@ class DependencyContainer:
 
         self.register_factory(service_name, factory, singleton)
 
-    def get(self, service_name: str) -> Any:
+    async def get(self, service_name: str) -> Any:
         """获取一个服务实例
 
         Args:
@@ -103,14 +103,27 @@ class DependencyContainer:
         # 如果有单例工厂，使用工厂创建实例并缓存
         if service_name in self._singleton_factories:
             self._building.add(service_name)
-            instance = self._singleton_factories[service_name](self)
+            factory = self._singleton_factories[service_name]
+            
+            # 检查工厂函数是否是异步的
+            if inspect.iscoroutinefunction(factory):
+                instance = await factory(self)
+            else:
+                instance = factory(self)
+                
             self._building.remove(service_name)
             self._services[service_name] = instance
             return instance
 
         # 如果有普通工厂，创建新实例但不缓存
         if service_name in self._factories:
-            return self._factories[service_name](self)
+            factory = self._factories[service_name]
+            
+            # 检查工厂函数是否是异步的
+            if inspect.iscoroutinefunction(factory):
+                return await factory(self)
+            else:
+                return factory(self)
 
         raise ServiceNotFoundError(f"服务未找到: {service_name}")
 
@@ -137,26 +150,52 @@ class DependencyContainer:
             装饰后的函数
         """
         signature = inspect.signature(func)
+        
+        # 检查函数是否是异步的
+        is_async = inspect.iscoroutinefunction(func)
 
-        def wrapper(*args, **kwargs):
-            # 准备要注入的参数
-            injected_kwargs = kwargs.copy()
+        if is_async:
+            async def async_wrapper(*args, **kwargs):
+                # 准备要注入的参数
+                injected_kwargs = kwargs.copy()
 
-            # 获取还未提供的参数
-            provided_params = set(kwargs.keys())
-            for i, param_name in enumerate(signature.parameters):
-                if i < len(args):  # 已经通过位置参数提供
-                    provided_params.add(param_name)
+                # 获取还未提供的参数
+                provided_params = set(kwargs.keys())
+                for i, param_name in enumerate(signature.parameters):
+                    if i < len(args):  # 已经通过位置参数提供
+                        provided_params.add(param_name)
 
-            # 注入未提供的参数
-            for param_name, param in signature.parameters.items():
-                if param_name not in provided_params and self.has(param_name):
-                    injected_kwargs[param_name] = self.get(param_name)
+                # 注入未提供的参数
+                for param_name, param in signature.parameters.items():
+                    if param_name not in provided_params and self.has(param_name):
+                        injected_kwargs[param_name] = await self.get(param_name)
 
-            # 调用原始函数
-            return func(*args, **injected_kwargs)
+                # 调用原始函数
+                return await func(*args, **injected_kwargs)
 
-        return wrapper
+            return async_wrapper
+        else:
+            def wrapper(*args, **kwargs):
+                # 准备要注入的参数
+                injected_kwargs = kwargs.copy()
+
+                # 获取还未提供的参数
+                provided_params = set(kwargs.keys())
+                for i, param_name in enumerate(signature.parameters):
+                    if i < len(args):  # 已经通过位置参数提供
+                        provided_params.add(param_name)
+
+                # 注入未提供的参数 - 对于同步函数，我们不能使用异步的get方法
+                # 只能注入已经实例化的服务
+                for param_name, param in signature.parameters.items():
+                    if param_name not in provided_params and self.has(param_name):
+                        if param_name in self._services:  # 只注入已实例化的服务
+                            injected_kwargs[param_name] = self._services[param_name]
+
+                # 调用原始函数
+                return func(*args, **injected_kwargs)
+
+            return wrapper
 
 # 全局依赖容器实例
 container = DependencyContainer()

@@ -93,7 +93,7 @@ class HttpClient:
 
         return self._session
 
-    def configure(self, conn_limit=None, conn_limit_per_host=None, timeout=None, headers=None, 
+    async def configure(self, conn_limit=None, conn_limit_per_host=None, timeout=None, headers=None, 
                   enable_cache=None, default_cache_ttl=None):
         """配置HTTP客户端参数
 
@@ -124,7 +124,7 @@ class HttpClient:
             self._default_cache_ttl = default_cache_ttl
 
         # 配置更改后，需要关闭并重新创建会话
-        self.close()
+        await self.close()
 
     async def close(self):
         """关闭HTTP会话"""

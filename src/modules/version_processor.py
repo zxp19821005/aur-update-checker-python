@@ -177,8 +177,9 @@ class VersionProcessor:
         pattern_parts: List[str] = version_pattern.split('.')
 
         # 检查部分数量是否一致
-        if len(version_parts) != len(pattern_parts):
-            return False
+        if len(version_parts) < len(pattern_parts):
+            # 允许部分匹配，例如 "6.37" 可以匹配 "x.y" 或 "x.y.z"
+            return len(version_parts) >= 2  # 至少需要两个部分
 
         # 检查每个部分是否为数字
         for part in version_parts:
@@ -248,9 +249,24 @@ class VersionProcessor:
                     break
                 elif current_part < latest_part:
                     break  # 当前版本低，不是最新版
+                # 如果相等则继续比较下一部分
 
             if is_newer:
                 latest_version = (original_ver, normalized_ver)
+                self.logger.debug(f"发现新版本: {latest_version[0]}")
 
-        self.logger.debug(f"最新版本是: {latest_version[0]}")
+        # 额外检查：确保返回的版本号格式与AUR版本格式一致
+        if self.package_config and self.package_config.get("version_pattern"):
+            version_pattern = self.package_config["version_pattern"]
+            if not self.is_version_similar(latest_version[0], version_pattern):
+                self.logger.warning(f"最新版本 {latest_version[0]} 与AUR版本格式 {version_pattern} 不匹配")
+                # 尝试从所有版本中找出格式匹配的最新版本
+                for ver, norm_ver in valid_versions:
+                    if self.is_version_similar(ver, version_pattern):
+                        if self.get_latest_version([latest_version[0], ver]) == ver:
+                            latest_version = (ver, norm_ver)
+                            self.logger.debug(f"选择格式匹配的最新版本: {latest_version[0]}")
+                            break
+
+        self.logger.debug(f"最终确定的最新版本是: {latest_version[0]}")
         return latest_version[0]  # 返回原始版本字符串

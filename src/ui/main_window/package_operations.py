@@ -299,6 +299,12 @@ class PackageOperationsMixin:
         Args:
             package: 要编辑的软件包
         """
+        # 每次打开对话框时都从数据库获取最新数据
+        if isinstance(package, dict) and 'name' in package:
+            latest_package = self.db.get_package_by_name(package['name'])
+            if latest_package:
+                package = latest_package
+                
         dialog = PackageDialog(self, package)
         if dialog.exec_() == PackageDialog.Accepted:
             package_data = dialog.get_package_data()
@@ -307,10 +313,56 @@ class PackageOperationsMixin:
             try:
                 self.db.update_package(package_data["name"], package_data)
                 self.logger.info(f"已更新软件包 {package_data['name']}")
-                self.load_packages()  # 重新加载软件包列表
+                
+                # 强制清除数据库缓存
+                if hasattr(self.db, '_clear_packages_cache'):
+                    self.db._clear_packages_cache()
+                    self.logger.debug("已清除数据库缓存")
+                
+                # 强制刷新缓存
+                if hasattr(self, 'main_checker') and hasattr(self.main_checker, 'checkers'):
+                    # 更新检查器实例的配置
+                    checker_type = package_data.get("checker_type")
+                    if checker_type in self.main_checker.checkers:
+                        self.main_checker.checkers[checker_type].package_config = package_data
+                        self.logger.debug(f"已更新 {checker_type} 检查器的配置")
+                
+                # 重新加载软件包列表
+                if hasattr(self, 'load_packages'):
+                    # 强制刷新数据
+                    self.load_packages()
+                    self.logger.debug("已强制刷新软件包列表")
+                
+                # 立即更新UI显示
+                self._update_package_display(package_data["name"])
+                
             except Exception as e:
                 self.logger.error(f"更新软件包时出错: {str(e)}")
                 QMessageBox.critical(self, "错误", f"更新软件包时出错: {str(e)}")
+                
+    def _update_package_display(self, package_name):
+        """立即更新指定软件包的UI显示
+        
+        Args:
+            package_name: 要更新的软件包名称
+        """
+        # 查找软件包在表格中的行
+        for row in range(self.packages_table.rowCount()):
+            name_item = self.packages_table.item(row, 1)
+            if name_item and name_item.text() == package_name:
+                # 从数据库获取最新数据
+                package_info = self.db.get_package_by_name(package_name)
+                if package_info:
+                    # 更新检查器类型列（假设第6列是检查器类型）
+                    checker_item = self.packages_table.item(row, 5)
+                    if checker_item:
+                        checker_item.setText(package_info.get("checker_type", ""))
+                    
+                    # 更新上游版本检查状态（假设第7列是检查状态）
+                    status_item = self.packages_table.item(row, 6)
+                    if status_item:
+                        status_item.setText("已更新")
+                break
 
     def add_package(self):
         """添加新软件包"""

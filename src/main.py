@@ -40,7 +40,7 @@ def parse_arguments():
     parser.add_argument('--version', '-v', action='store_true', help='显示版本信息')
     return parser.parse_args()
 
-def main():
+async def main():
     """程序入口函数"""
     # 解析命令行参数
     args = parse_arguments()
@@ -51,10 +51,10 @@ def main():
         sys.exit(0)
     
     # 初始化服务提供者
-    ServiceProvider.bootstrap(config_path=args.config)
+    await ServiceProvider.bootstrap(config_path=args.config)
 
     # 获取日志服务
-    logger = container.get("logger")
+    logger = await container.get("logger")
     logger.info("AUR Update Checker (Python版) 启动中...")
     
     # 如果指定了日志级别，设置日志级别
@@ -64,11 +64,11 @@ def main():
 
     # 服务已通过ServiceProvider初始化，无需手动初始化
     # 从容器中获取配置和数据库服务
-    config = container.get("config")
-    db = container.get("db")
+    config = await container.get("config")
+    db = await container.get("db")
 
-    # HTTP客户端已通过ServiceProvider初始化并注册
-    http_client = container.get("http_client")
+    # 异步获取HTTP客户端
+    http_client = await container.get("http_client")
     logger.debug("HTTP客户端已初始化，准备就绪")
 
     # 创建Qt应用实例
@@ -144,4 +144,4 @@ def main():
         sys.exit(app.exec())  # 使用标准Qt事件循环
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

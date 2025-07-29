@@ -4,6 +4,7 @@ import json
 import tempfile
 import argparse
 import sys
+import inspect
 from datetime import datetime
 from pathlib import Path
 
@@ -16,6 +17,7 @@ class ConfigModule:
         Args:
             logger: 日志模块实例
         """
+        # 确保logger是实例而不是协程
         self.logger = logger
         
         # 获取配置文件路径
@@ -50,25 +52,25 @@ class ConfigModule:
             args, _ = parser.parse_known_args()
             if args.config:
                 config_file = args.config
-                self.logger.info(f"从命令行参数获取配置文件路径: {config_file}")
+                print(f"从命令行参数获取配置文件路径: {config_file}")
         except Exception as e:
-            self.logger.warning(f"解析命令行参数时出错: {str(e)}")
+            print(f"解析命令行参数时出错: {str(e)}")
         
         # 确定最终使用的配置文件路径（优先级：命令行 > 环境变量 > 默认路径）
         final_config_file = config_file or env_config_file or default_config_file
         final_config_dir = os.path.dirname(final_config_file)
         
-        self.logger.info(f"使用配置文件: {final_config_file}")
+        print(f"使用配置文件: {final_config_file}")
         return final_config_dir, final_config_file
 
     def _ensure_config_dir(self):
         """确保配置目录存在"""
         try:
             if not os.path.exists(self.config_dir):
-                self.logger.info(f"创建配置目录: {self.config_dir}")
+                print(f"创建配置目录: {self.config_dir}")
                 os.makedirs(self.config_dir, exist_ok=True)
         except Exception as e:
-            self.logger.error(f"创建配置目录时出错: {str(e)}")
+            print(f"创建配置目录时出错: {str(e)}")
 
     def _load_default_config(self):
         """加载默认配置
