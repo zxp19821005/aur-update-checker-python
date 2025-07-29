@@ -20,7 +20,7 @@ setup(
     package_dir={"": "."},
     entry_points={
         "console_scripts": [
-            "aur-update-checker-python = src.main:main",
+            "aur-update-checker-python = src.main:sync_main",  # 修改为 sync_main
         ],
     },
     install_requires=install_requires,

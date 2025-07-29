@@ -143,5 +143,9 @@ async def main():
     else:
         sys.exit(app.exec())  # 使用标准Qt事件循环
 
-if __name__ == "__main__":
+def sync_main():
+    """同步入口函数，用于 console_scripts"""
     asyncio.run(main())
+
+if __name__ == "__main__":
+    sync_main()
