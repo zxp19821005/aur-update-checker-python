@@ -108,8 +108,8 @@ class UpstreamCurlChecker(BaseChecker):
         """尝试直接从关键字后提取版本"""
         for pattern_template in self.DIRECT_VERSION_PATTERNS:
             try:
-                # 安全地替换模式中的 {key} 占位符
-                pattern = pattern_template.replace('{key}', key)
+                # 安全地替换模式中的 {} 占位符
+                pattern = pattern_template.replace('{}', re.escape(key))
                 match = re.search(pattern, text)
                 if match:
                     version = match.group(1).rstrip('.')
@@ -184,11 +184,15 @@ class UpstreamCurlChecker(BaseChecker):
                 
                 if filtered_candidates:
                     self.logger.debug(f"比较版本: {filtered_candidates}")
-                    latest = self.version_processor.get_latest_version(filtered_candidates)
+                    # 确保最终版本符合a.b.c格式
+                    valid_candidates = [v for v in filtered_candidates if len(v.split('.')) == 3]
+                    if not valid_candidates:
+                        return None
+                    latest = self.version_processor.get_latest_version(valid_candidates)
                     if latest:
                         self.logger.info(f"从关键字上下文中提取到最新版本: {latest}")
                         return latest
-                    return filtered_candidates[0]
+                    return valid_candidates[0]
             else:
                 # 全文提取
                 patterns = self.COMMON_VERSION_PATTERNS
@@ -245,6 +249,11 @@ class UpstreamCurlChecker(BaseChecker):
                             is_substring = True
                             break
             
+            # 额外验证版本号格式是否符合AUR版本格式
+            version_parts = version.split('.')
+            if len(version_parts) != 3:  # 只保留a.b.c格式的版本
+                continue
+                
             if not is_substring:
                 filtered_candidates.append(version)
                 
