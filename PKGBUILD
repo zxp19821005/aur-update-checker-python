@@ -1,6 +1,6 @@
 # Maintainer: Z.ai <support@z.ai>
 pkgname=aur-update-checker
-pkgver=1.0.0
+pkgver=1.0.1
 pkgrel=1
 pkgdesc="AUR和上游版本检查工具"
 arch=('x86_64')
