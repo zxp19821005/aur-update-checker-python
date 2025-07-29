@@ -55,10 +55,13 @@ jobs:
         with:
           files: dist/*.whl
           tag_name: ${{ github.ref }}
-          name: Release ${{ env.VERSION }}
+          name: Version ${{ env.VERSION }} - Stable Release
           body: |
-            Automated release for version ${{ env.VERSION }}
-            Changelog:
-            - Built from tag ${{ github.ref }}
+            ## Release Notes for Version ${{ env.VERSION }}
+            ### Changes:
+            - Initial stable release of aur-update-checker-python.
+            - Includes all core features for AUR package update checking.
+            ### Build Details:
+            - Built from tag: ${{ github.ref }}
           draft: false
           prerelease: false
