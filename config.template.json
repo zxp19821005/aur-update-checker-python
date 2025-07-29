@@ -1,6 +1,6 @@
 {
   "# 配置文件说明": "这是AUR Update Checker的配置文件模板，可以根据需要修改以下配置项",
-  "# 配置文件版本": "1.0.0",
+  "# 配置文件版本": "1.0.1",
   "# 使用说明": "可以通过以下方式指定配置文件路径：1. 环境变量AUR_UPDATE_CHECKER_CONFIG 2. 命令行参数--config或-c",
   "# 示例": "AUR_UPDATE_CHECKER_CONFIG=/path/to/config.json ./main.py 或 ./main.py --config /path/to/config.json",
 

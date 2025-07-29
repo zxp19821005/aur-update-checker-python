@@ -47,7 +47,7 @@ async def main():
     
     # 显示版本信息并退出
     if args.version:
-        print("AUR Update Checker (Python版) v1.0.0")
+        print("AUR Update Checker (Python版) v1.0.1")
         sys.exit(0)
     
     # 初始化服务提供者
