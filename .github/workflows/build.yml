@@ -10,9 +10,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # 显式声明权限
     permissions:
-      contents: write  # 允许创建 Release
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +20,15 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        id: pip-cache
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -31,6 +39,15 @@ jobs:
         run: |
           python setup.py bdist_wheel
           echo "Wheel package created successfully"
+
+      - name: Cache wheel package
+        uses: actions/cache@v3
+        id: wheel-cache
+        with:
+          path: dist/
+          key: ${{ runner.os }}-wheel-${{ hashFiles('setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-wheel-
 
       - name: Check for dependency updates
         run: |
@@ -44,9 +61,6 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "版本信息: ${VERSION}"
 
-      - name: List files in dist/
-        run: ls -la dist/
-
       - name: Upload wheel package
         uses: actions/upload-artifact@v4
         with:
@@ -57,9 +71,9 @@ jobs:
           overwrite: false
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2  # 升级到 v2
+        uses: softprops/action-gh-release@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 显式传递 Token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
             dist/*.whl
@@ -75,4 +89,4 @@ jobs:
             - Built from tag: ${{ github.ref }}
           draft: false
           prerelease: false
-          overwrite: true  # 允许覆盖已存在的 Release
+          overwrite: true
