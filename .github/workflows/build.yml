@@ -70,7 +70,6 @@ jobs:
         with:
           files: |
             dist/*.whl
-            LICENSE
           tag_name: ${{ github.ref }}
           name: Version ${{ env.VERSION }} - Stable Release
           body: |
