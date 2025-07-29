@@ -14,8 +14,21 @@ class SystemTrayMixin:
         self.tray_icon = QSystemTrayIcon(self)
 
         # 加载托盘图标
-        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "assets", "icon.png")
-        self.tray_icon.setIcon(QIcon(icon_path if os.path.exists(icon_path) else ""))
+        # 尝试从多个路径加载图标
+        icon_paths = [
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "assets", "tray.png"),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "tray.png"),
+            os.path.join("assets", "tray.png")
+        ]
+        
+        for icon_path in icon_paths:
+            self.logger.debug(f"尝试加载托盘图标路径: {icon_path}")
+            if os.path.exists(icon_path):
+                self.logger.debug(f"文件存在: {icon_path}")
+                self.tray_icon.setIcon(QIcon(icon_path))
+                break
+        else:
+            self.logger.warning("未找到托盘图标文件")
 
         # 创建托盘菜单
         tray_menu = QMenu()

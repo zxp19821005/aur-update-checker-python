@@ -11,3 +11,5 @@ lxml>=6.0.0  # XML解析库，提供快速的HTML/XML处理能力
 
 # 安全工具
 safety>=3.6.0  # 用于检查Python依赖中的已知安全漏洞
+
+aiohttp>=3.9.0  # 异步HTTP客户端/服务端框架

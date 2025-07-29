@@ -59,55 +59,58 @@ AUR Update Checker 采用了现代化的架构设计：
 
 ## 安装方法
 
-### 从 AUR 安装
+### 从 AUR 安装 (推荐)
 
 ```bash
-# 使用 yay
-yay -S aur-update-checker
+# 使用 paru (推荐)
+paru -S aur-update-checker-python
 
-# 或使用 paru
-paru -S aur-update-checker
+# 或使用 yay
+yay -S aur-update-checker-python
 ```
 
-### 从源码安装
+### 使用 pipx 安装
+
+```bash
+# 安装 pipx (如果尚未安装)
+python -m pip install --user pipx
+python -m pipx ensurepath
+
+# 安装应用
+pipx install aur-update-checker-python
+
+# 运行应用
+aur-update-checker-python
+```
+
+### 从源码安装 (开发者)
 
 ```bash
 # 克隆仓库
 git clone https://github.com/zxp19821005/aur-update-checker-python.git
-
-# 进入目录
 cd aur-update-checker-python
+
+# 创建虚拟环境
+python -m venv .venv
+source .venv/bin/activate
 
 # 安装依赖
 pip install -r requirements.txt
 
-# 启动应用
-python main.py
-```
-
-### 从源码构建
-
-```bash
-# 克隆仓库
-git clone https://github.com/zxp19821005/aur-update-checker-python.git
-
-# 进入目录
-cd aur-update-checker-python
-
-# 构建可执行文件
-python package.py
-
-# 或使用 deploy.py 进行完整部署
-python deploy.py
+# 运行应用
+python src/main.py
 ```
 
 ### 运行环境要求
 
-本应用依赖以下系统包：
+基础依赖：
 
 ```bash
-# 安装必要的系统依赖
+# Arch Linux 系统
 sudo pacman -S python pyside6 python-beautifulsoup4 python-requests python-lxml python-playwright
+
+# 其他 Linux 发行版
+pip install PySide6 requests beautifulsoup4 lxml playwright
 ```
 
 **注意**：打包后的可执行文件默认使用系统安装的 PySide6 和 playwright 库，而不是将它们打包到可执行文件中。这样可以减小可执行文件的大小，但要求系统中必须安装这些依赖。

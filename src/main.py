@@ -6,6 +6,9 @@ import asyncio
 import argparse
 from pathlib import Path
 
+# 将项目根目录添加到 sys.path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 # 设置当前目录为项目根目录
 # 检查是否是编译后的环境
 if getattr(sys, "__compiled__", False):
