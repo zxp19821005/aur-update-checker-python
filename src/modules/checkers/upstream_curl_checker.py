@@ -152,7 +152,7 @@ class UpstreamCurlChecker(BaseChecker):
                         version_candidates.append(match)
         return version_candidates
 
-    def extract_version_from_context(self, context, version_extract_key, check_test_versions=False):
+    def extract_version_from_context(self, context, version_extract_key, check_test_versions=False, aur_version=None):
         """从上下文中提取版本号"""
         try:
             self.logger.debug(f"开始提取版本，提取键: '{version_extract_key}'")
@@ -180,26 +180,23 @@ class UpstreamCurlChecker(BaseChecker):
                         version_candidates.extend(extracted_versions)
 
                 # 过滤和验证版本候选列表
-                filtered_candidates = self._filter_version_candidates(version_candidates)
+                filtered_candidates = self._filter_version_candidates(version_candidates, aur_version)
                 
                 if filtered_candidates:
                     self.logger.debug(f"比较版本: {filtered_candidates}")
-                    # 确保最终版本符合a.b.c格式
-                    valid_candidates = [v for v in filtered_candidates if len(v.split('.')) == 3]
-                    if not valid_candidates:
-                        return None
-                    latest = self.version_processor.get_latest_version(valid_candidates)
+                    # 使用版本处理器获取最新版本
+                    latest = self.version_processor.get_latest_version(filtered_candidates)
                     if latest:
                         self.logger.info(f"从关键字上下文中提取到最新版本: {latest}")
                         return latest
-                    return valid_candidates[0]
+                    return filtered_candidates[0] if filtered_candidates else None
             else:
                 # 全文提取
                 patterns = self.COMMON_VERSION_PATTERNS
                 version_candidates = self._extract_with_patterns(context, patterns, file_sizes)
                 
                 # 过滤和验证版本候选列表
-                filtered_candidates = self._filter_version_candidates(version_candidates)
+                filtered_candidates = self._filter_version_candidates(version_candidates, aur_version)
                 
                 if filtered_candidates:
                     self.logger.debug(f"比较版本: {filtered_candidates}")
@@ -207,14 +204,14 @@ class UpstreamCurlChecker(BaseChecker):
                     if latest:
                         self.logger.info(f"从全文提取到最新版本: {latest}")
                         return latest
-                    return filtered_candidates[0]
+                    return filtered_candidates[0] if filtered_candidates else None
 
         except Exception as e:
             self.logger.warning(f"从上下文提取版本号时出错: {str(e)}")
         
         return None
         
-    def _filter_version_candidates(self, version_candidates):
+    def _filter_version_candidates(self, version_candidates, aur_version=None):
         """过滤和验证版本候选列表"""
         if not version_candidates:
             return []
@@ -250,9 +247,13 @@ class UpstreamCurlChecker(BaseChecker):
                             break
             
             # 额外验证版本号格式是否符合AUR版本格式
-            version_parts = version.split('.')
-            if len(version_parts) != 3:  # 只保留a.b.c格式的版本
-                continue
+            if aur_version:
+                aur_parts = aur_version.split('.')
+                version_parts = version.split('.')
+                
+                # 如果AUR版本和候选版本的段数差异过大，则过滤掉
+                if abs(len(aur_parts) - len(version_parts)) > 1:
+                    continue
                 
             if not is_substring:
                 filtered_candidates.append(version)
@@ -296,7 +297,7 @@ class UpstreamCurlChecker(BaseChecker):
 
                 # 使用提取函数
                 version = self.extract_version_from_context(
-                    content, version_extract_key or "", check_test_versions
+                    content, version_extract_key or "", check_test_versions, aur_version
                 )
 
                 # 额外验证提取的版本号格式
@@ -314,10 +315,13 @@ class UpstreamCurlChecker(BaseChecker):
                                 version = full_ver
                                 break
                     
+                    # 验证版本
                     if self._validate_version(version, aur_version, version_pattern):
                         return self._success_result(package_name, version, "成功提取版本")
-                    return self._success_result(package_name, version, "提取的版本与AUR版本格式不匹配")
-
+                    else:
+                        # 即使验证失败也返回成功结果，但添加说明
+                        return self._success_result(package_name, version, "提取的版本与AUR版本格式不匹配")
+                
                 # 尝试从URL提取
                 if aur_version:
                     exact_match = re.search(
